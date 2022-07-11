@@ -3,6 +3,8 @@ const Bot = require("./Bot");
 
 const scheduler = (seconds) => {
     const bot = new Bot(process.env.BOT_TOKEN, process.env.CHAT_ID);
+    const labelText = process.env.label ? `[${process.env.label}] `:"";
+    const onlyError = process.env.onlyError ==="true";
 
     const getMessage = async () => {
         let message = "";
@@ -17,12 +19,16 @@ const scheduler = (seconds) => {
         if (typeof message !== "string") {
             message = JSON.stringify(message)
         }
-        return ` ${isSuccess ? "success" : "failed"} : ${message}`;
+
+        if(onlyError&&isSuccess){
+            return "";
+        }
+        return `${labelText}${isSuccess ? "success" : "failed"} : ${message}`;
     }
 
     const scheduling = async () => {
         const message = await getMessage();
-        bot.sendMessage(message);
+        message && bot.sendMessage(message);
         await new Promise((r) => setTimeout(r, seconds * 1000));
         scheduling();
     }
